@@ -1,4 +1,7 @@
-RideURL = "https://queue-times.com/parks.json"
-RideQueueURL = "https://queue-times.com/parks/2/queue_times.json"
+from requests import get
+from pprint import pprint
 
-print('')
+RideURL = get("https://queue-times.com/parks.json").json()
+RideQueueURL = get("https://queue-times.com/parks/2/queue_times.json").json()
+
+pprint(RideURL[1])
