@@ -92,9 +92,9 @@ class dataBaseEditor():
 
 if __name__ == '__main__':
     interval_seconds = 60 * 5  # Example: Scrape every 5 minutes
-    while True:
-        rides_Times = findWaitTime()
-    wait_times = findWaitTime()
+    # while True:
+    #     rides_Times = findWaitTime()
+    # wait_times = findWaitTime()
     listOfDicts = DataConversion.makeDictFromCSV("output.csv")
 
     with dataBaseWriter() as db_writer:
