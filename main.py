@@ -57,9 +57,10 @@ class dataBaseEditor():
     def dump_table_rows(cursor, table_name, data):
         dump_rows = f"TRUNCATE TABLE {table_name} RESTART IDENTITY;"
         cursor.execute(dump_rows)
-    def update_table(cursor, table_name, data, columns):
+    def update_table(cursor, table_name, data):
         columns = ', '.join(data.keys())
         placeholders = ', '.join(['%s'] * len(data))
+        values = tuple(data.values())
 
         query = f"""
                 INSERT INTO {table_name} ({columns})
@@ -73,9 +74,10 @@ if __name__ == '__main__':
     #interval_seconds = 60 * 5  # Example: Scrape every 5 minutes
     # while True:
     #     rides_Times = findWaitTime()
+    waitTimes = {"flier"}
     wait_times = findWaitTime()
-    with dataBaseWriter() as db_writer:
-
+    # with dataBaseWriter() as db_writer:
+    #
 
         #time.sleep(interval_seconds
 
