@@ -2,6 +2,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
+import DataConversion
 import time
 def findWaitTime():
     waitTimesUrl = 'https://www.thrill-data.com/waittimes/fiesta-texas'
@@ -32,6 +33,8 @@ class dataBaseWriter():
         self.conn.close()
 
 class dataBaseEditor():
+
+    @staticmethod
     def check_table_exists(cursor, table_name, schema_name='public'):
         query = """
                SELECT EXISTS (
@@ -44,40 +47,65 @@ class dataBaseEditor():
         table_exists = cursor.fetchone()[0]
         return table_exists
 
+    @staticmethod
     def create_table(cursor, table_name, schema_name='public'):
         sql_create_table = """
                 CREATE TABLE ride_wait_times (
                     ride_name VARCHAR(100) PRIMARY KEY,
-                    wait_time INTEGER,
+                    current_wait_time REAL,
+                    average_wait_time INTEGER,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """
         cursor.execute(sql_create_table)
 
+    @staticmethod
     def dump_table_rows(cursor, table_name, data):
         dump_rows = f"TRUNCATE TABLE {table_name} RESTART IDENTITY;"
         cursor.execute(dump_rows)
+    @staticmethod
     def update_table(cursor, table_name, data):
-        columns = ', '.join(data.keys())
+        # Construct the SQL query dynamically
+        columns = ', '.join(["\"{}\"".format(col) for col in data.keys()])
         placeholders = ', '.join(['%s'] * len(data))
-        values = tuple(data.values())
+        # values = tuple(data.values())
+        #
+        # for key, values in data.items():
+        #     if values is None:
+        #         data[key] = 0
+        values = tuple(value if value else None for value in data.values())
+        print(values)
+
 
         query = f"""
                 INSERT INTO {table_name} ({columns})
-                VALUES ({placeholders})
-            """
+                VALUES ({placeholders}) 
+--                 ON CONFLICT ("Ride Name") DO UPDATE 
+--                 SET 
+--                     "Current Wait" = EXCLUDED."Current Wait",
+--                     "Average Wait" = EXCLUDED."Average Wait" 
+                """
 
-        cursor.execute(query)
+        # Execute the query
+        cursor.execute(query, values)
 
 
 if __name__ == '__main__':
-    #interval_seconds = 60 * 5  # Example: Scrape every 5 minutes
-    # while True:
-    #     rides_Times = findWaitTime()
-    waitTimes = {"flier"}
+    interval_seconds = 60 * 5  # Example: Scrape every 5 minutes
+    while True:
+        rides_Times = findWaitTime()
     wait_times = findWaitTime()
-    # with dataBaseWriter() as db_writer:
-    #
+    listOfDicts = DataConversion.makeDictFromCSV("output.csv")
+
+    with dataBaseWriter() as db_writer:
+        if not dataBaseEditor.check_table_exists(db_writer, 'ride_wait_times'):
+            dataBaseEditor.create_table(db_writer, 'RideTimes')
+            for dictionary in listOfDicts:
+                dataBaseEditor.update_table(db_writer, 'ride_wait_times', dictionary)
+        else:
+            dataBaseEditor.dump_table_rows(db_writer, 'ride_wait_times', listOfDicts)
+            for dictionary in listOfDicts:
+                dataBaseEditor.update_table(db_writer, 'ride_wait_times', dictionary)
 
         #time.sleep(interval_seconds
 

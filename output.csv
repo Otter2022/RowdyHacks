@@ -1,5 +1,4 @@
-Ride Name,Current Wait,Average Wait
-,,
+ride_name,current_wait_time,average_wait_time
 Amerigoround,,8
 BATMAN: The Ride,11.0,20
 Bahama Blaster,20.0,4
